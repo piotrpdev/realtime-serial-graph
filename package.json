@@ -1,23 +1,20 @@
 {
-  "name": "wbglscatteracc",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.html",
+  "name": "vite-typescript-starter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "start": "parcel index.html --open",
-    "build": "parcel build index.html"
-  },
-  "dependencies": {
-    "dygraphs": "^2.2.1",
-    "parcel-bundler": "^1.6.1"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
     "@types/dygraphs": "^2.1.10",
     "@types/w3c-web-serial": "^1.0.6",
-    "typescript": "4.4.4"
+    "typescript": "^5.2.2",
+    "vite": "^5.2.11"
   },
-  "resolutions": {
-    "@babel/preset-env": "7.13.8"
-  },
-  "keywords": []
+  "dependencies": {
+    "dygraphs": "^2.2.1"
+  }
 }

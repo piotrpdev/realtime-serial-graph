@@ -1,22 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Parcel Sandbox</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dygraphs@2.2.1/dist/dygraph.min.css">
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Realtime Serial Graph</title>
   </head>
-
   <body>
-    <div>
+    <div id="app">
       <h1>Realtime Serial Graph</h1>
       <button id="portButton" type="button">Open Port</button>
       <br>
       <br>
       <div id="chart"></div>
     </div>
-
-    <script src="src/index.ts"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
