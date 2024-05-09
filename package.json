@@ -8,13 +8,12 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
-    "c3": "^0.7.20",
     "dygraphs": "^2.2.1",
-    "parcel-bundler": "^1.6.1",
-    "webgl-plot": "^0.7.0"
+    "parcel-bundler": "^1.6.1"
   },
   "devDependencies": {
     "@types/dygraphs": "^2.1.10",
+    "@types/w3c-web-serial": "^1.0.6",
     "typescript": "4.4.4"
   },
   "resolutions": {

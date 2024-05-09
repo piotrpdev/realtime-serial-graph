@@ -35,11 +35,11 @@ void setup() {
 void loop() {
   
   if((digitalRead(10) == 1)||(digitalRead(11) == 1)){
-    Serial.println('!');
+    Serial.print('!');
   }
   else{
     // send the value of analog input 0:
-      Serial.println("<" + String(analogRead(A0)) + ">");
+      Serial.print("<" + String(analogRead(A0)) + ">");
   }
   //Wait for a bit to keep serial data from saturating
   delay(1);
