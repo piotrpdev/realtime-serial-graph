@@ -1,9 +1,12 @@
 // https://developer.chrome.com/docs/capabilities/serial
 
 import 'dygraphs/dist/dygraph.css';
+import 'papercss/dist/paper.min.css';
+import './style.css';
 
 import { default as Dygraph } from "dygraphs";
 
+let serialStartDate: Date;
 let serialPort: SerialPort;
 let serialReader: ReadableStreamDefaultReader<number>;
 const serialDecoder = new TextDecoderStream();
@@ -36,17 +39,21 @@ class ChevronTransformer implements Transformer<string, number> {
 
 const chart = new Dygraph(document.getElementById("chart")!, serialPoints, {
   drawPoints: false,
-  showRoller: true,
+  // @ts-ignore
+  resizable: "both",
   rollPeriod: 5,
   valueRange: [200, 600],
+  title: "Pulse Sensor Data",
   labels: ["Time", "Pulse"],
-  xlabel: "Time (hh:mm:ss)",
+  axisLabelWidth: 60,
+  xAxisHeight: 40,
+  xlabel: "Time (s)",
   ylabel: "Pulse (0-1023)",
 });
 
 setInterval(() => {
   if (serialPoints.length > 0) {
-    serialPoints = serialPoints.slice(-300);
+    serialPoints = serialPoints.slice(-1000);
 
     chart.updateOptions({ file: serialPoints });
   }
@@ -62,7 +69,9 @@ async function getAndAddSerialPoint() {
       break;
     }
 
-    serialPoints.push([new Date(), value]);
+    const timeElapsed = new Date().getTime() - serialStartDate.getTime();
+
+    serialPoints.push([timeElapsed / 1000, value]);
   }
 }
 
@@ -79,6 +88,8 @@ document.getElementById("portButton")?.addEventListener("click", async () => {
     serialReader = serialDecoder.readable
       ?.pipeThrough(new TransformStream(new ChevronTransformer()))
       .getReader();
+
+    serialStartDate = new Date();
 
     getAndAddSerialPoint();
   } catch (e) {
