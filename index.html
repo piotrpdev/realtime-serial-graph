@@ -9,7 +9,29 @@
   <body>
     <div id="app">
       <h1>Realtime Serial Graph</h1>
-      <button id="portButton" type="button">Open Port</button>
+      <div id="controls">
+        <button id="portButton" type="button">Start</button>
+        <div id="pointsMaxLengthGroup" class="form-group">
+          <label for="input-range">Points Count /5000 :</label>
+          <input type="range" name="pointsMaxLength" id="pointsMaxLength-range" value="1000" min="1" max="5000">
+          <output id="pointsMaxLengthOutput" for="pointsMaxLength-range">1000</output>
+        </div>
+        <div id="rollGroup" class="form-group">
+          <label for="input-range">Roll Period /20 :</label>
+          <input type="range" name="rollPeriod" id="rollPeriod-range" value="5" min="0" max="20">
+          <output id="rollOutput" for="rollPeriod-range">5</output>
+        </div>
+        <div id="valueMinGroup" class="form-group">
+          <label for="input-range">Value Min /1023 :</label>
+          <input type="range" name="valueMin" id="valueMin-range" value="200" min="0" max="1023">
+          <output id="valueMinOutput" for="valueMin-range">200</output>
+        </div>
+        <div id="valueMaxGroup" class="form-group">
+          <label for="input-range">Value Max /1023 :</label>
+          <input type="range" name="valueMax" id="valueMax-range" value="600" min="0" max="1023">
+          <output id="valueMaxOutput" for="valueMax-range">600</output>
+        </div>
+      </div>
       <div id="chart" style="width: 50vw; height: 50vh;"></div>
     </div>
     <script type="module" src="/src/main.ts"></script>

@@ -13,6 +13,7 @@ let serialStreamClosed: Promise<void>;
 let serialReader: ReadableStreamDefaultReader<number>;
 let serialDecoder: TextDecoderStream;
 let serialPoints: Array<Array<number>>;
+let serialPointsMaxLength: number;
 
 let keepReading = false;
 let refreshGraphInterval: number | undefined;
@@ -89,6 +90,30 @@ async function initSerial() {
   serialStartDate = new Date();
 }
 
+function adjustPointsMaxLengthFromInputEvent(e: Event) {
+  const value = parseInt((e.target as HTMLInputElement).value);
+  document.getElementById("pointsMaxLengthOutput")!.textContent = value.toString();
+  serialPointsMaxLength = value;
+}
+
+function adjustRollFromInputEvent(e: Event) {
+  const value = parseInt((e.target as HTMLInputElement).value);
+  document.getElementById("rollOutput")!.textContent = value.toString();
+  chart.adjustRoll(value);
+}
+
+function adjustValueMinFromInputEvent(e: Event) {
+  const value = parseInt((e.target as HTMLInputElement).value);
+  document.getElementById("valueMinOutput")!.textContent = value.toString();
+  chart.updateOptions({ valueRange: [value, chart.getOption("valueRange")[1]] });
+}
+
+function adjustValueMaxFromInputEvent(e: Event) {
+  const value = parseInt((e.target as HTMLInputElement).value);
+  document.getElementById("valueMaxOutput")!.textContent = value.toString();
+  chart.updateOptions({ valueRange: [chart.getOption("valueRange")[0], value] });
+}
+
 document.getElementById("portButton")?.addEventListener("click", async () => {
   console.debug("Checking for serial API support...")
   if ("serial" in navigator === false) {
@@ -108,25 +133,43 @@ document.getElementById("portButton")?.addEventListener("click", async () => {
         drawPoints: false,
         // @ts-ignore
         resizable: "both",
-        rollPeriod: 5,
-        valueRange: [200, 600],
-        title: "Pulse Sensor Data",
-        labels: ["Time", "Pulse"],
+        rollPeriod: parseInt((document.getElementById("rollPeriod-range")! as HTMLInputElement).value),
+        valueRange: [
+          parseInt((document.getElementById("valueMin-range")! as HTMLInputElement).value),
+          parseInt((document.getElementById("valueMax-range")! as HTMLInputElement).value)
+        ],
+        title: "Value vs Time",
+        labels: ["Time", "Value"],
         axisLabelWidth: 60,
         xAxisHeight: 40,
         xlabel: "Time (s)",
-        ylabel: "Pulse (0-1023)",
+        ylabel: "Value (0-1023)",
       });
+
+      serialPointsMaxLength = parseInt((document.getElementById("pointsMaxLength-range")! as HTMLInputElement).value);
 
       console.debug("Creating refresh graph interval...");
       refreshGraphInterval = setInterval(() => {
         if (serialPoints.length > 0) {
-          serialPoints = serialPoints.slice(-1000);
+          serialPoints = serialPoints.slice(-serialPointsMaxLength);
       
           chart.updateOptions({ file: serialPoints });
         }
       }, 10);
 
+      chart.ready(() => {
+        document.getElementById("pointsMaxLengthGroup")!.style.display = "flex";
+        document.getElementById("pointsMaxLengthGroup")!.addEventListener("input", adjustPointsMaxLengthFromInputEvent);
+
+        document.getElementById("rollGroup")!.style.display = "flex";
+        document.getElementById("rollGroup")!.addEventListener("input", adjustRollFromInputEvent);
+
+        document.getElementById("valueMinGroup")!.style.display = "flex";
+        document.getElementById("valueMinGroup")!.addEventListener("input", adjustValueMinFromInputEvent);
+
+        document.getElementById("valueMaxGroup")!.style.display = "flex";
+        document.getElementById("valueMaxGroup")!.addEventListener("input", adjustValueMaxFromInputEvent);
+      });
       document.getElementById("portButton")!.textContent = "Stop";
   
       console.debug("Starting serial read loop...");
@@ -156,6 +199,20 @@ document.getElementById("portButton")?.addEventListener("click", async () => {
       }, 100);
 
       console.debug("Resetting button text...");
+
+      document.getElementById("pointsMaxLengthGroup")!.style.display = "none";
+      document.getElementById("pointsMaxLengthGroup")!.removeEventListener("input", adjustPointsMaxLengthFromInputEvent);
+
+      document.getElementById("rollGroup")!.style.display = "none";
+      document.getElementById("rollGroup")!.removeEventListener("input", adjustRollFromInputEvent);
+
+      document.getElementById("valueMinGroup")!.style.display = "none";
+      document.getElementById("valueMinGroup")!.removeEventListener("input", adjustValueMinFromInputEvent);
+
+      document.getElementById("valueMaxGroup")!.style.display = "none";
+      document.getElementById("valueMaxGroup")!.removeEventListener("input", adjustValueMaxFromInputEvent);
+
+
       document.getElementById("portButton")!.textContent = "Start";
     }
   } catch (e) {

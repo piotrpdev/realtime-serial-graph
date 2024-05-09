@@ -30,6 +30,18 @@ body {
   margin-top: 0;
 }
 
+#controls {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+}
+
+.form-group {
+  display: none;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+
 #chart {
   margin-top: 4rem;
 }
