@@ -1,71 +1,59 @@
 // Based on https://github.com/danchitnis/webgl-plot-examples/blob/b50ef3146db16b82a04f7279aae799d81c10f0f1/vanilla/src/randomness.ts
 // (MIT License, Copyright (c) 2019 Danial Chitnis)
 
-import { WebglPlot, ColorRGBA, WebglLine } from "webgl-plot";
-
-const canvas = document.getElementById("my_canvas") as HTMLCanvasElement;
+import { default as Dygraph } from 'dygraphs';
 
 const devicePixelRatio = window.devicePixelRatio || 1;
-canvas.width = canvas.clientWidth * devicePixelRatio;
-canvas.height = canvas.clientHeight * devicePixelRatio;
-
-const lineColor = new ColorRGBA(0, 0, 0, 1);
-const numX = Math.round(canvas.width);
-const wglp = new WebglPlot(canvas);
-
-let numLines = 1;
-let scaleY = 1;
-
-let fpsDivder = 1;
-let fpsCounter = 0;
 
 let serialReader: ReadableStreamDefaultReader<Uint8Array>;
 const serialDecoder = new TextDecoder();
 let serialBuffer: string = "";
-let serialPoints: Array<number> = [];
+let serialPoints: Array<Array<any>> = [];
 
-async function newFrame() {
-  if (fpsCounter === 0) {
-    await plot();
+const chart = new Dygraph(document.getElementById("chart")!, serialPoints,
+      {
+        drawPoints: false,
+        showRoller: true,
+        rollPeriod: 5,
+        valueRange: [200, 600],
+        labels: ['Time', 'Random'],
+        xlabel: 'Time (hh:mm:ss)',
+        ylabel: 'Pulse (0-1023)',
+      });
 
-    wglp.gScaleY = scaleY;
-    wglp.update();
+setInterval(() => {
+  if (serialPoints.length > 0) {
+    // chart.load({
+    //   columns: [
+    //     ['data1', ...(serialPoints.slice(-1000))],
+    //   ],
+    // });
+
+    chart.updateOptions({ 'file': serialPoints.slice(-300) });
+
+    // serialPoints = [];
   }
+}, 10);
 
-  fpsCounter++;
+async function getAndAddSerialPoint() {
+  while (true) {
+    const { value, done } = await serialReader.read();
 
-  if (fpsCounter >= fpsDivder) {
-    fpsCounter = 0;
-  }
-}
-
-async function plot() {
-  wglp.linesData.forEach(async (line) => {
-    if (serialPoints.length === 0) return;
-
-    (line as WebglLine).shiftAdd(new Float32Array(serialPoints.map((v) => v / 1023)));
-    serialPoints = [];
-  });
-}
-
-function getAndAddSerialPoint() {
-  serialReader.read().then(({ value, done }) => {
     if (done) {
       console.log("Stream complete");
-      return;
+      serialReader.releaseLock();
+      break;
     }
 
     const serialData = serialDecoder.decode(value);
     serialBuffer += serialData;
 
     serialBuffer = serialBuffer.replace(/\<(.*?)\>/g, (_, p1) => {
-      serialPoints.push(parseInt(p1));
-      newFrame();
+      serialPoints.push([new Date(), parseInt(p1)]);
+
       return "";
     });
-
-    getAndAddSerialPoint();
-  });
+  }
 }
 
 document.getElementById("portButton")?.addEventListener("click", async () => {
@@ -78,12 +66,6 @@ document.getElementById("portButton")?.addEventListener("click", async () => {
     const port = await (navigator as any).serial.requestPort()
     await port.open({ baudRate: 9600 });
     serialReader = port.readable.getReader();
-
-    wglp.removeAllLines();
-
-    const line = new WebglLine(lineColor, numX);
-    line.arrangeX();
-    wglp.addLine(line);
 
     getAndAddSerialPoint();
   } catch (e) {
