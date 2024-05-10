@@ -18,6 +18,10 @@ let serialPointsMaxLength: number;
 let keepReading = false;
 let refreshGraphInterval: number | undefined;
 
+let bpmThreshold = 450;
+let isPastThreshold = false;
+let timeSinceLastThresholdPassed: Date | undefined;
+
 class ChevronTransformer implements Transformer<string, number> {
   chunks = "";
 
@@ -55,8 +59,22 @@ async function startSerialReadLoop() {
       }
   
       const timeElapsed = new Date().getTime() - serialStartDate.getTime();
+
+      let bpm = null;
+
+      if (value > bpmThreshold && !isPastThreshold) {
+        isPastThreshold = true;
+
+        if (timeSinceLastThresholdPassed) {
+          bpm = Math.round(60000 / (new Date().getTime() - timeSinceLastThresholdPassed.getTime()))
+        }
+
+        timeSinceLastThresholdPassed = new Date();
+      } else if (value <= bpmThreshold && isPastThreshold) {
+        isPastThreshold = false;
+      }
   
-      serialPoints.push([timeElapsed / 1000, value]);
+      serialPoints.push([timeElapsed / 1000, value, bpm!]);
     }
   } catch (e) {
     console.error(e);
@@ -126,7 +144,7 @@ document.getElementById("portButton")?.addEventListener("click", async () => {
       console.debug("Initializing serial stuff...");
       await initSerial();
 
-      serialPoints = [[0, 0]];
+      serialPoints = [[0, 0, 0]];
 
       console.debug("Creating chart...");
       chart = new Dygraph(document.getElementById("chart")!, serialPoints, {
@@ -139,7 +157,8 @@ document.getElementById("portButton")?.addEventListener("click", async () => {
           parseInt((document.getElementById("valueMax-range")! as HTMLInputElement).value)
         ],
         title: "Value vs Time",
-        labels: ["Time", "Value"],
+        labels: ["Time", "Value", "BPM"],
+        connectSeparatedPoints: true,
         axisLabelWidth: 60,
         xAxisHeight: 40,
         xlabel: "Time (s)",
